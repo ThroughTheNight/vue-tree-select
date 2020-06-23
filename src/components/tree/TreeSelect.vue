@@ -14,8 +14,6 @@
       <span>{{ selectValue.label || palceholder }}</span>
     </div>
 
-    <Icon type="right" />
-
     <transition name="fade">
       <div
         class="t-tree__dropdown"
@@ -38,8 +36,33 @@
               paddingLeft: `${item.level * 16}px`
             }"
               @click.stop="handleSelect(item)"
-            >{{item.label}}</li>
+            >
+              <span
+                class="t-tree__dropdown--item-icon"
+                v-if="item.type === 'organization' && item.children && item.children.length > 0"
+                @click.stop="handleChangeExpand(item)"
+              >
+                <Icon
+                  :type="item.isExpandFlag ? 'solid-arrow-down' : 'RightArrow'"
+                  style="color: #a6adb4; width: 14px"
+                />
+              </span>
+
+              <span class="t-tree__dropdown--item-icon" @click.stop="handleChangeExpand(item)">
+                <Icon
+                  :type="item.type === 'organization' ? 'bumen' : 'zuzhijiagou'"
+                  style="width: 14px"
+                />
+              </span>
+
+              <span>{{item.label}}</span>
+            </li>
           </template>
+          <li
+            v-if="flatData.length === 0"
+            class="t-tree__dropdown--item"
+            style="paddingLeft: 16px"
+          >暂无数据</li>
         </ul>
       </div>
     </transition>
@@ -73,6 +96,12 @@ export default {
     dataSource: { // tree 数据源
       type: Array,
       required: true
+    },
+
+    // 是否可以选中部门
+    allowSelectOrganization: {
+      type: Boolean,
+      default: false
     },
 
     /** 单选相关的数据 */
@@ -120,7 +149,6 @@ export default {
       this.selectValue = {}
 
       this.dealData(this.dataSource, 1)
-      console.log(this.flatData);
 
     },
 
@@ -130,6 +158,8 @@ export default {
         // 是否选中
         item.isCheckFlag = false
         item.level = level
+
+        // 默认展示两层数据 
         if (level > 2) {
           item.isShowFlag = false // 控制该数据是否显示
         } else {
@@ -139,7 +169,13 @@ export default {
         this.flatData.push(item)
 
         if (item.children && item.type === 'organization') {
-          item.isExpandFlag = false // 用来控制是否展开
+          // 默认打开最顶层
+          if (level > 1) {
+            item.isExpandFlag = false // 用来控制是否展开
+          } else {
+            item.isExpandFlag = true
+          }
+
           // 给子元素增加 pId
           item.children.forEach((childItem) => {
             childItem.pId = item.id
@@ -156,12 +192,28 @@ export default {
       this.isShowSelectFlag = true
       this.setDropdownPlace()
     },
+    handleChangeExpand(record) { // 控制展开还是收起
+      record.isExpandFlag = !record.isExpandFlag
+      this.hideItem(record.id, record.isExpandFlag)
+    },
+    hideItem(id, flag) { // 递归关闭子级
+      this.flatData.forEach((item) => {
+        if (item.pId === id) {
+          item.isShowFlag = flag
+          if (!flag && item.children) {
+            item.isExpandFlag = false
+            this.hideItem(item.id, flag)
+          }
+        }
+      })
+      this.$forceUpdate()
+    },
 
     // 点击下拉项
     handleSelect(record) {
-      console.log(record)
 
       if (!this.multip && this.selectValue.id !== record.id) {
+        if (record.type === 'organization' && !this.allowSelectOrganization) return
         this.isShowSelectFlag = false
         this.selectValue = record
         this.$emit('change', record.id)
@@ -245,8 +297,16 @@ export default {
   &--item {
     height: 36px;
     line-height: 36px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
     &:hover {
       background: #e6f7ff;
+    }
+
+    &-icon {
+      display: inline-block;
+      margin-right: 6px;
     }
   }
 }

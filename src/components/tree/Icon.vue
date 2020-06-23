@@ -10,6 +10,8 @@
 
 export default {
 
+  name: 'icon',
+
   props: {
     type: {
       type: String,
@@ -22,10 +24,12 @@ export default {
 
 <style lang="scss" scoped>
 // 设置 icon-font
+span {
+  display: inline-block;
+}
 .icon {
-  width: 18px;
-  height: 18px;
-  vertical-align: middle;
+  width: 14px;
+  height: 14px;
   fill: currentColor;
   overflow: hidden;
 }

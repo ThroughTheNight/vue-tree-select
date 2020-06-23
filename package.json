@@ -1,12 +1,25 @@
 {
-  "name": "vue-demo",
-  "version": "0.1.0",
-  "private": true,
+  "name": "@bieyanghong/vue-select-tree",
+  "version": "1.0.2",
+  "private": false,
+  "license": "MIT",
+  "main": "lib/vue-tree-select.common.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AFTM7512/vue-tree-select.git"
+  },
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "lint": "vue-cli-service lint",
+    "lib": "vue-cli-service build --target lib --name vue-tree-select --dest lib src/components/tree/index.js"
   },
+  "keywords": [
+    "vue",
+    "tree",
+    "select",
+    "tree-select"
+  ],
   "dependencies": {
     "core-js": "^3.6.5",
     "vue": "^2.6.11",
