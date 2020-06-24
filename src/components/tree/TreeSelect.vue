@@ -11,7 +11,22 @@
         fontSize: multip ? '14px' : '12px',
       }"
     >
-      <span>{{ selectValue.label || palceholder }}</span>
+      <span v-if="!multip">{{ selectValue.label || palceholder }}</span>
+      <template v-else-if="multip && selectMulValue.length > 0">
+        <span class="t-tree__select--item">
+          background-color: #fafafa;
+          border: 1px solid #e8e8e8;
+          border-radius: 2px;
+        </span>
+        <span class="t-tree__select--item">
+          background-color: #fafafa;
+          border: 1px solid #e8e8e8;
+          border-radius: 2px;
+        </span>
+        <span class="t-tree__select--item">background-colo</span>
+        <span class="t-tree__select--item">background</span>
+      </template>
+      <span v-else>{{ palceholder }}</span>
     </div>
 
     <transition name="fade">
@@ -133,7 +148,12 @@ export default {
 
 
       /** 多选相关 */
-      selectMulId: [],
+      selectMulValue: [
+        {
+          label: 'asdad',
+          id: 123
+        }
+      ],
     }
   },
 
@@ -229,7 +249,8 @@ export default {
     // 设置弹出框的位置
     setDropdownPlace() {
       const rectOffset = this.$refs.selectRef.getBoundingClientRect()
-      this.dropdownSpace.top = `${rectOffset.top + 44}px`
+
+      this.dropdownSpace.top = `${rectOffset.top + rectOffset.height + 6}px`
       this.dropdownSpace.left = `${rectOffset.left}px`
     },
   },
@@ -258,15 +279,33 @@ export default {
 .t-tree {
   // color: #f00;
   font-size: 14px;
+  display: inline-block;
   box-sizing: border-box;
   &__select {
-    height: 32px;
+    width: 200px;
+    min-height: 32px;
+    overflow: hidden;
+    line-height: 32px;
     padding: 0 12px;
     border: 1px solid #e8e8e8;
     border-radius: 4px;
     cursor: pointer;
-    line-height: 32px;
     text-align: left;
+    &--item {
+      max-width: 94%;
+      height: 24px;
+      float: left;
+      padding: 0 4px;
+      margin: 3px 4px 3px 0;
+      line-height: 24px;
+      font-size: 12px;
+      background-color: #fafafa;
+      border: 1px solid #e8e8e8;
+      border-radius: 2px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
   }
 }
 
