@@ -85,4 +85,3 @@ export default {
 |  defaltMulValue          | 多选时的默认值            | number[] |
 |  mulValue                | 指定当前选中的条目         | number[] |
 |  maxTagCount             | 最多显示多少个tag         | number   |
-
