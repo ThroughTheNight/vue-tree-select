@@ -8,11 +8,11 @@
         borderColor: isShowSelectFlag ? '#1890ff' : '',
         boxShadow: isShowSelectFlag ? '0 0 0 2px rgba(24, 144, 255, 0.2)' : '',
         width: typeof width === 'number' ? `${width}px` : width,
-        fontSize: multip ? '14px' : '12px',
+        fontSize: mode ? '14px' : '12px',
       }"
     >
-      <span v-if="!multip">{{ selectValue.label || palceholder }}</span>
-      <template v-else-if="multip && selectMulValue.length > 0">
+      <span v-if="!mode">{{ selectValue.label || palceholder }}</span>
+      <template v-else-if="mode && selectMulValue.length > 0">
         <span
           v-for="item in  selectMulValue.slice(0, maxTagCount)"
           :key="item.id"
@@ -102,7 +102,7 @@ export default {
       type: [String, Number],
       default: 220,
     },
-    multip: { // true 表示多选
+    mode: { // true 表示多选
       type: Boolean,
       default: false
     },
@@ -184,9 +184,9 @@ export default {
       this.selectValue = {}
       this.selectMulValue = []
 
-      if (this.multip && (this.defaltMulValue?.length > 0 || this.mulValue?.length > 0)) {
+      if (this.mode && (this.defaltMulValue?.length > 0 || this.mulValue?.length > 0)) {
         this.setDefaultValue(this.mulValue || this.defaltMulValue)
-      } else if (!this.multip && this.defaltValue) {
+      } else if (!this.mode && this.defaltValue) {
         this.selectValue = this.flatData.find(item => item.id === this.defaltValue)
       }
 
@@ -271,7 +271,7 @@ export default {
     // 点击下拉项，选中数据
     handleSelect(record) {
 
-      if (!this.multip && this.selectValue.id !== record.id) {
+      if (!this.mode && this.selectValue.id !== record.id) {
         // 单选时，需要判断是否能点击部门，
         if (record.type === 'organization' && !this.allowSelectOrganization) return
         this.isShowSelectFlag = false
@@ -389,7 +389,7 @@ export default {
   display: inline-block;
   box-sizing: border-box;
   &__select {
-    width: 200px;
+    width: 220px;
     min-height: 32px;
     overflow: hidden;
     line-height: 32px;

@@ -6,7 +6,7 @@
     <tree
       width="240px"
       style="margin: 0 auto"
-      multip
+      mode
       :dataSource="treeData"
       :maxTagCount="2"
       :defaltMulValue="[2, 4, 5]"
