@@ -14,7 +14,7 @@
       <span v-if="!multip">{{ selectValue.label || palceholder }}</span>
       <template v-else-if="multip && selectMulValue.length > 0">
         <span
-          v-for="item in  selectMulValue"
+          v-for="item in  selectMulValue.slice(0, maxTagCount)"
           :key="item.id"
           class="t-tree__select--item"
           @click.stop="()=>{}"
@@ -22,6 +22,10 @@
           <span>{{ item.label }}</span>
           <span class="t-tree__select--item-delete" @click="handleDelete(item)">x</span>
         </span>
+        <span
+          class="t-tree__select--item"
+          v-if="maxTagCount && selectMulValue.length > maxTagCount"
+        >...</span>
       </template>
       <span v-else>{{ palceholder }}</span>
     </div>
@@ -150,12 +154,7 @@ export default {
 
 
       /** 多选相关 */
-      selectMulValue: [
-        {
-          label: 'asdad',
-          id: 123
-        }
-      ],
+      selectMulValue: [],
     }
   },
 
@@ -270,10 +269,11 @@ export default {
         }
 
         // 将选中的数据保存起来
+        this.selectMulValue = []
         const result = this.flatData.filter(item => item.isCheckFlag)
-        this.selectMulValue = result
-
         this.$emit('change', result)
+        // 最多显示多少tag
+        this.selectMulValue = result
 
         this.$nextTick(() => {
           this.setDropdownPlace()

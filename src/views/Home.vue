@@ -8,6 +8,7 @@
       style="margin: 0 auto"
       multip
       :dataSource="treeData"
+      :maxTagCount="2"
       @change="handleChange"
     />
   </div>
