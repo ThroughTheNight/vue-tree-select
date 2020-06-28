@@ -102,7 +102,7 @@ export default {
       type: [String, Number],
       default: 220,
     },
-    multip: {
+    multip: { // true 表示多选
       type: Boolean,
       default: false
     },
@@ -131,9 +131,15 @@ export default {
     },
 
     /** 多选相关的数据 */
+    defaltMulValue: { // 设置默认值
+      type: Array,
+    },
+    mulValue: { // 绑定默认值
+      type: Array
+    },
     maxTagCount: { // 最多显示多少个 tag
       type: Number
-    }
+    },
   },
 
   components: {
@@ -162,14 +168,27 @@ export default {
     value(nv) {
       this.selectId = nv
     },
+    mulValue: {
+      handler(nv) {
+        this.setDefaultValue(nv)
+      },
+      deep: true
+    }
   },
 
   methods: {
     initData() {
       this.flatData = []
-      this.selectValue = {}
-
       this.dealData(this.dataSource, 1)
+
+      this.selectValue = {}
+      this.selectMulValue = []
+
+      if (this.multip && (this.defaltMulValue?.length > 0 || this.mulValue?.length > 0)) {
+        this.setDefaultValue(this.mulValue || this.defaltMulValue)
+      } else if (!this.multip && this.defaltValue) {
+        this.selectValue = this.flatData.find(item => item.id === this.defaltValue)
+      }
 
     },
 
@@ -249,7 +268,7 @@ export default {
       })
     },
 
-    // 点击下拉项
+    // 点击下拉项，选中数据
     handleSelect(record) {
 
       if (!this.multip && this.selectValue.id !== record.id) {
@@ -271,7 +290,7 @@ export default {
         // 将选中的数据保存起来
         this.selectMulValue = []
         const result = this.flatData.filter(item => item.isCheckFlag)
-        this.$emit('change', result)
+        this.$emit('change', result.map(item => item.id))
         // 最多显示多少tag
         this.selectMulValue = result
 
@@ -320,6 +339,20 @@ export default {
       this.isShowSelectFlag = false
     },
 
+    // 设置多选默认值
+    setDefaultValue(list) {
+      this.selectMulValue = []
+      this.flatData.forEach((item) => {
+        item.isCheckFlag = false
+      })
+      list?.forEach((item) => {
+        const result = this.flatData.find(it => it.id === item)
+        result.isCheckFlag = true
+        this.selectMulValue.push(result)
+      })
+
+      this.$forceUpdate()
+    },
     // 设置弹出框的位置
     setDropdownPlace() {
       const rectOffset = this.$refs.selectRef.getBoundingClientRect()

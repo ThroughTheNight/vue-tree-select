@@ -9,6 +9,8 @@
       multip
       :dataSource="treeData"
       :maxTagCount="2"
+      :defaltMulValue="[2, 4, 5]"
+      :mulValue="mulValue"
       @change="handleChange"
     />
   </div>
@@ -67,12 +69,13 @@ export default {
           ],
         },
       ],
+      mulValue: [],
     }
   },
 
   methods: {
-    handleChange() {
-
+    handleChange(val) {
+      this.mulValue = val
     }
   }
 };
