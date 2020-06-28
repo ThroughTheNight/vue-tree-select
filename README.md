@@ -1,5 +1,7 @@
 # @bieyanghong/vue-select-tree
 
+![avatar](./src/assets/example.jpg)
+
 ## Installation
 ```
 npm install @bieyanghong/vue-select-tree --save
