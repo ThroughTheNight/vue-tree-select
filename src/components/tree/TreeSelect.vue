@@ -13,18 +13,15 @@
     >
       <span v-if="!multip">{{ selectValue.label || palceholder }}</span>
       <template v-else-if="multip && selectMulValue.length > 0">
-        <span class="t-tree__select--item">
-          background-color: #fafafa;
-          border: 1px solid #e8e8e8;
-          border-radius: 2px;
+        <span
+          v-for="item in  selectMulValue"
+          :key="item.id"
+          class="t-tree__select--item"
+          @click.stop="()=>{}"
+        >
+          <span>{{ item.label }}</span>
+          <span class="t-tree__select--item-delete" @click="handleDelete(item)">x</span>
         </span>
-        <span class="t-tree__select--item">
-          background-color: #fafafa;
-          border: 1px solid #e8e8e8;
-          border-radius: 2px;
-        </span>
-        <span class="t-tree__select--item">background-colo</span>
-        <span class="t-tree__select--item">background</span>
       </template>
       <span v-else>{{ palceholder }}</span>
     </div>
@@ -71,6 +68,8 @@
               </span>
 
               <span>{{item.label}}</span>
+
+              <span class="t-tree__dropdown--item-check" v-show="item.isCheckFlag">√</span>
             </li>
           </template>
           <li
@@ -128,6 +127,9 @@ export default {
     },
 
     /** 多选相关的数据 */
+    maxTagCount: { // 最多显示多少个 tag
+      type: Number
+    }
   },
 
   components: {
@@ -228,17 +230,89 @@ export default {
       })
       this.$forceUpdate()
     },
+    handleDelete(record) { // 多选时删除
+      record.isCheckFlag = false
+
+      if (record.type === 'organization') {
+
+        this.operationAll(record.id, record.isCheckFlag)
+      } else {
+        this.operationShop(record.pId, record.isCheckFlag)
+      }
+
+      // 将选中的数据保存起来
+      const result = this.flatData.filter(item => item.isCheckFlag)
+      this.selectMulValue = result
+
+      this.$nextTick(() => {
+        this.setDropdownPlace()
+        this.$forceUpdate()
+      })
+    },
 
     // 点击下拉项
     handleSelect(record) {
 
       if (!this.multip && this.selectValue.id !== record.id) {
+        // 单选时，需要判断是否能点击部门，
         if (record.type === 'organization' && !this.allowSelectOrganization) return
         this.isShowSelectFlag = false
         this.selectValue = record
         this.$emit('change', record.id)
+      } else {
+        record.isCheckFlag = !record.isCheckFlag
+
+        if (record.type === 'organization') {
+
+          this.operationAll(record.id, record.isCheckFlag)
+        } else {
+          this.operationShop(record.pId, record.isCheckFlag)
+        }
+
+        // 将选中的数据保存起来
+        const result = this.flatData.filter(item => item.isCheckFlag)
+        this.selectMulValue = result
+
+        this.$emit('change', result)
+
+        this.$nextTick(() => {
+          this.setDropdownPlace()
+          this.$forceUpdate()
+        })
       }
 
+    },
+    // 操作部门的选中时，需要全选，反选 部门下面的成员
+    operationAll(id, flag) {
+
+      this.flatData.forEach((item) => {
+
+        if (item.pId === id) {
+
+          item.isCheckFlag = flag
+
+          // 递归处理部门下成员的 全选，反选
+          if (item.children && item.type === 'organization') this.operationAll(item.id, flag)
+          // 如果同级全部选择，则让父级选中，如果同级有一个没选中，则让父级去掉选中
+          if (item.pId) this.operationShop(item.pId, flag)
+        }
+      })
+    },
+    // 操作门店时，需要反向计算部门是否选中
+    operationShop(pId, flag) {
+      const result = this.flatData.find(item => item.pId === pId && item.isCheckFlag === !flag)
+
+      // 如果同级的没有任何一个状态不相同，则向上选中
+      if (!result) {
+        const deptResult = this.flatData.find(item => item.id === pId)
+        deptResult.isCheckFlag = flag
+        if (deptResult.pId) this.operationShop(deptResult.pId, flag)
+      } else {
+        // 如果同级有一个状态不相同，如果父级有选中，则清除选中
+        const deptResult = this.flatData.find(item => item.id === pId)
+        deptResult.isCheckFlag = false
+        if (deptResult.pId) this.operationShop(deptResult.pId, flag)
+      }
     },
 
     // 点击其他空白区域时，关闭弹框
@@ -305,6 +379,11 @@ export default {
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+      &-delete {
+        font-size: 14px;
+        cursor: pointer;
+        margin-left: 4px;
+      }
     }
   }
 }
@@ -346,6 +425,12 @@ export default {
     &-icon {
       display: inline-block;
       margin-right: 6px;
+    }
+
+    &-check {
+      float: right;
+      margin-right: 12px;
+      color: #1890ff;
     }
   }
 }

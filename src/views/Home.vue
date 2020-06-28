@@ -1,6 +1,8 @@
 <template>
   <div class="home">
-    <img alt="Vue logo" src="../assets/logo.png" />
+    <p>
+      <img alt="Vue logo" src="../assets/logo.png" />
+    </p>
     <tree
       width="240px"
       style="margin: 0 auto"
