@@ -8,10 +8,26 @@
         borderColor: isShowSelectFlag ? '#1890ff' : '',
         boxShadow: isShowSelectFlag ? '0 0 0 2px rgba(24, 144, 255, 0.2)' : '',
         width: typeof width === 'number' ? `${width}px` : width,
-        fontSize: multip ? '14px' : '12px',
+        fontSize: mode ? '14px' : '12px',
       }"
     >
-      <span>{{ selectValue.label || palceholder }}</span>
+      <span v-if="!mode">{{ selectValue.label || palceholder }}</span>
+      <template v-else-if="mode && selectMulValue.length > 0">
+        <span
+          v-for="item in  selectMulValue.slice(0, maxTagCount)"
+          :key="item.id"
+          class="t-tree__select--item"
+          @click.stop="()=>{}"
+        >
+          <span>{{ item.label }}</span>
+          <span class="t-tree__select--item-delete" @click="handleDelete(item)">x</span>
+        </span>
+        <span
+          class="t-tree__select--item"
+          v-if="maxTagCount && selectMulValue.length > maxTagCount"
+        >...</span>
+      </template>
+      <span v-else>{{ palceholder }}</span>
     </div>
 
     <transition name="fade">
@@ -42,20 +58,21 @@
                 v-if="item.type === 'organization' && item.children && item.children.length > 0"
                 @click.stop="handleChangeExpand(item)"
               >
-                <Icon
-                  :type="item.isExpandFlag ? 'solid-arrow-down' : 'RightArrow'"
-                  style="color: #a6adb4; width: 14px"
-                />
+                <Icon :type="item.isExpandFlag ? 'right1-copy' : 'right'" style="fontSize: 14px" />
               </span>
 
               <span class="t-tree__dropdown--item-icon" @click.stop="handleChangeExpand(item)">
                 <Icon
-                  :type="item.type === 'organization' ? 'bumen' : 'zuzhijiagou'"
-                  style="width: 14px"
+                  :type="item.type === 'organization' ? 'organization' : 'department'"
+                  style="fontSize: 14px"
                 />
               </span>
 
               <span>{{item.label}}</span>
+
+              <span class="t-tree__dropdown--item-check" v-show="item.isCheckFlag">
+                <Icon type="check1" style="color: #1890ff" />
+              </span>
             </li>
           </template>
           <li
@@ -84,7 +101,7 @@ export default {
       type: [String, Number],
       default: 220,
     },
-    multip: {
+    mode: { // true 表示多选
       type: Boolean,
       default: false
     },
@@ -113,6 +130,15 @@ export default {
     },
 
     /** 多选相关的数据 */
+    defaltMulValue: { // 设置默认值
+      type: Array,
+    },
+    mulValue: { // 绑定默认值
+      type: Array
+    },
+    maxTagCount: { // 最多显示多少个 tag
+      type: Number
+    },
   },
 
   components: {
@@ -133,7 +159,7 @@ export default {
 
 
       /** 多选相关 */
-      selectMulId: [],
+      selectMulValue: [],
     }
   },
 
@@ -141,14 +167,27 @@ export default {
     value(nv) {
       this.selectId = nv
     },
+    mulValue: {
+      handler(nv) {
+        this.setDefaultValue(nv)
+      },
+      deep: true
+    }
   },
 
   methods: {
     initData() {
       this.flatData = []
-      this.selectValue = {}
-
       this.dealData(this.dataSource, 1)
+
+      this.selectValue = {}
+      this.selectMulValue = []
+
+      if (this.mode && (this.defaltMulValue?.length > 0 || this.mulValue?.length > 0)) {
+        this.setDefaultValue(this.mulValue || this.defaltMulValue)
+      } else if (!this.mode && this.defaltValue) {
+        this.selectValue = this.flatData.find(item => item.id === this.defaltValue)
+      }
 
     },
 
@@ -208,17 +247,90 @@ export default {
       })
       this.$forceUpdate()
     },
+    handleDelete(record) { // 多选时删除
+      record.isCheckFlag = false
 
-    // 点击下拉项
+      if (record.type === 'organization') {
+
+        this.operationAll(record.id, record.isCheckFlag)
+      } else {
+        this.operationShop(record.pId, record.isCheckFlag)
+      }
+
+      // 将选中的数据保存起来
+      const result = this.flatData.filter(item => item.isCheckFlag)
+      this.selectMulValue = result
+
+      this.$nextTick(() => {
+        this.setDropdownPlace()
+        this.$forceUpdate()
+      })
+    },
+
+    // 点击下拉项，选中数据
     handleSelect(record) {
 
-      if (!this.multip && this.selectValue.id !== record.id) {
+      if (!this.mode && this.selectValue.id !== record.id) {
+        // 单选时，需要判断是否能点击部门，
         if (record.type === 'organization' && !this.allowSelectOrganization) return
         this.isShowSelectFlag = false
         this.selectValue = record
         this.$emit('change', record.id)
+      } else {
+        record.isCheckFlag = !record.isCheckFlag
+
+        if (record.type === 'organization') {
+
+          this.operationAll(record.id, record.isCheckFlag)
+        } else {
+          this.operationShop(record.pId, record.isCheckFlag)
+        }
+
+        // 将选中的数据保存起来
+        this.selectMulValue = []
+        const result = this.flatData.filter(item => item.isCheckFlag)
+        this.$emit('change', result.map(item => item.id))
+        // 最多显示多少tag
+        this.selectMulValue = result
+
+        this.$nextTick(() => {
+          this.setDropdownPlace()
+          this.$forceUpdate()
+        })
       }
 
+    },
+    // 操作部门的选中时，需要全选，反选 部门下面的成员
+    operationAll(id, flag) {
+
+      this.flatData.forEach((item) => {
+
+        if (item.pId === id) {
+
+          item.isCheckFlag = flag
+
+          // 递归处理部门下成员的 全选，反选
+          if (item.children && item.type === 'organization') this.operationAll(item.id, flag)
+          // 如果同级全部选择，则让父级选中，如果同级有一个没选中，则让父级去掉选中
+          if (item.pId) this.operationShop(item.pId, flag)
+        }
+      })
+    },
+    // 操作门店时，需要反向计算部门是否选中
+    operationShop(pId, flag) {
+      const result = this.flatData.find(item => item.pId === pId && item.isCheckFlag === !flag)
+
+      // 如果同级的没有任何一个状态不相同，则向上选中
+      if (!result) {
+        const deptResult = this.flatData.find(item => item.id === pId)
+        deptResult.isCheckFlag = flag
+        if (deptResult.pId) this.operationShop(deptResult.pId, flag)
+      } else {
+        // 如果同级有一个状态不相同，如果父级有选中，则清除选中
+        const deptResult = this.flatData.find(item => item.id === pId)
+        deptResult.isCheckFlag = false
+        if (deptResult.pId) this.operationShop(deptResult.pId, flag)
+      }
     },
 
     // 点击其他空白区域时，关闭弹框
@@ -226,10 +338,25 @@ export default {
       this.isShowSelectFlag = false
     },
 
+    // 设置多选默认值
+    setDefaultValue(list) {
+      this.selectMulValue = []
+      this.flatData.forEach((item) => {
+        item.isCheckFlag = false
+      })
+      list?.forEach((item) => {
+        const result = this.flatData.find(it => it.id === item)
+        result.isCheckFlag = true
+        this.selectMulValue.push(result)
+      })
+
+      this.$forceUpdate()
+    },
     // 设置弹出框的位置
     setDropdownPlace() {
       const rectOffset = this.$refs.selectRef.getBoundingClientRect()
-      this.dropdownSpace.top = `${rectOffset.top + 44}px`
+
+      this.dropdownSpace.top = `${rectOffset.top + rectOffset.height + 6}px`
       this.dropdownSpace.left = `${rectOffset.left}px`
     },
   },
@@ -258,15 +385,39 @@ export default {
 .t-tree {
   // color: #f00;
   font-size: 14px;
+  display: inline-block;
   box-sizing: border-box;
   &__select {
-    height: 32px;
+    box-sizing: border-box;
+    width: 220px;
+    min-height: 32px;
+    overflow: hidden;
+    line-height: 32px;
     padding: 0 12px;
     border: 1px solid #e8e8e8;
     border-radius: 4px;
     cursor: pointer;
-    line-height: 32px;
     text-align: left;
+    &--item {
+      max-width: 94%;
+      height: 24px;
+      float: left;
+      padding: 0 4px;
+      margin: 3px 4px 3px 0;
+      line-height: 24px;
+      font-size: 12px;
+      background-color: #fafafa;
+      border: 1px solid #e8e8e8;
+      border-radius: 2px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      &-delete {
+        font-size: 14px;
+        cursor: pointer;
+        margin-left: 4px;
+      }
+    }
   }
 }
 
@@ -307,6 +458,12 @@ export default {
     &-icon {
       display: inline-block;
       margin-right: 6px;
+    }
+
+    &-check {
+      float: right;
+      margin-right: 12px;
+      color: #1890ff;
     }
   }
 }

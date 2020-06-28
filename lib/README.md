@@ -1,6 +1,6 @@
 # @bieyanghong/vue-select-tree
 
-![avatar](./src/assets/example.jpg)
+![avatar](example.jpg)
 
 ## Installation
 ```
