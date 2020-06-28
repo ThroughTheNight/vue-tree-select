@@ -58,22 +58,21 @@
                 v-if="item.type === 'organization' && item.children && item.children.length > 0"
                 @click.stop="handleChangeExpand(item)"
               >
-                <Icon
-                  :type="item.isExpandFlag ? 'solid-arrow-down' : 'RightArrow'"
-                  style="color: #a6adb4; width: 14px"
-                />
+                <Icon :type="item.isExpandFlag ? 'right1-copy' : 'right'" style="fontSize: 14px" />
               </span>
 
               <span class="t-tree__dropdown--item-icon" @click.stop="handleChangeExpand(item)">
                 <Icon
-                  :type="item.type === 'organization' ? 'bumen' : 'zuzhijiagou'"
-                  style="width: 14px"
+                  :type="item.type === 'organization' ? 'organization' : 'department'"
+                  style="fontSize: 14px"
                 />
               </span>
 
               <span>{{item.label}}</span>
 
-              <span class="t-tree__dropdown--item-check" v-show="item.isCheckFlag">√</span>
+              <span class="t-tree__dropdown--item-check" v-show="item.isCheckFlag">
+                <Icon type="check1" style="color: #1890ff" />
+              </span>
             </li>
           </template>
           <li
@@ -389,6 +388,7 @@ export default {
   display: inline-block;
   box-sizing: border-box;
   &__select {
+    box-sizing: border-box;
     width: 220px;
     min-height: 32px;
     overflow: hidden;

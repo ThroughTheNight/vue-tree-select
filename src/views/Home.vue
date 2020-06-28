@@ -4,7 +4,6 @@
       <img alt="Vue logo" src="../assets/logo.png" />
     </p>
     <tree
-      width="240px"
       style="margin: 0 auto"
       mode
       :dataSource="treeData"
