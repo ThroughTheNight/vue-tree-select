@@ -8,11 +8,11 @@
         borderColor: isShowSelectFlag ? '#1890ff' : '',
         boxShadow: isShowSelectFlag ? '0 0 0 2px rgba(24, 144, 255, 0.2)' : '',
         width: typeof width === 'number' ? `${width}px` : width,
-        fontSize: mode ? '14px' : '12px',
+        fontSize: mode  === 'default' ? '14px' : '12px',
       }"
     >
-      <span v-if="!mode">{{ selectValue.label || palceholder }}</span>
-      <template v-else-if="mode && selectMulValue.length > 0">
+      <span v-if="mode === 'default'">{{ selectValue.label || palceholder }}</span>
+      <template v-else-if="mode === 'multiple' && selectMulValue.length > 0">
         <span
           v-for="item in  selectMulValue.slice(0, maxTagCount)"
           :key="item.id"
@@ -101,9 +101,9 @@ export default {
       type: [String, Number],
       default: 220,
     },
-    mode: { // true 表示多选
-      type: Boolean,
-      default: false
+    mode: { // default 表示单选， multiple 多选
+      type: String,
+      default: 'default'
     },
     palceholder: {
       type: String,
@@ -122,7 +122,7 @@ export default {
     },
 
     /** 单选相关的数据 */
-    defaltValue: {
+    defaultValue: {
       type: [Number, String]
     }, // 设置单选
     value: {
@@ -130,7 +130,7 @@ export default {
     },
 
     /** 多选相关的数据 */
-    defaltMulValue: { // 设置默认值
+    defaultMulValue: { // 设置默认值
       type: Array,
     },
     mulValue: { // 绑定默认值
@@ -165,7 +165,7 @@ export default {
 
   watch: {
     value(nv) {
-      this.selectId = nv
+      this.selectValue = this.flatData.find(item => item.id === nv)
     },
     mulValue: {
       handler(nv) {
@@ -183,10 +183,14 @@ export default {
       this.selectValue = {}
       this.selectMulValue = []
 
-      if (this.mode && (this.defaltMulValue?.length > 0 || this.mulValue?.length > 0)) {
-        this.setDefaultValue(this.mulValue || this.defaltMulValue)
-      } else if (!this.mode && this.defaltValue) {
-        this.selectValue = this.flatData.find(item => item.id === this.defaltValue)
+      if (this.mode === 'multiple' && (this.defaultMulValue?.length > 0 || this.mulValue?.length > 0)) {
+        this.setDefaultValue(this.mulValue || this.defaultMulValue)
+      } else if (this.mode === 'default' && (this.value || this.defaultValue)) {
+        const result = this.flatData.find(item => item.id === (this.value || this.defaultValue))
+        if ((this.allowSelectOrganization && result.type === 'organization')
+          || (!this.allowSelectOrganization && result.type !== 'organization')) {
+          this.selectValue = result
+        }
       }
 
     },
@@ -270,7 +274,7 @@ export default {
     // 点击下拉项，选中数据
     handleSelect(record) {
 
-      if (!this.mode && this.selectValue.id !== record.id) {
+      if (this.mode === 'default' && this.selectValue.id !== record.id) {
         // 单选时，需要判断是否能点击部门，
         if (record.type === 'organization' && !this.allowSelectOrganization) return
         this.isShowSelectFlag = false
