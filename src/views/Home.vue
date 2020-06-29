@@ -5,7 +5,7 @@
     </p>
     <tree
       style="margin: 0 auto"
-      mode
+      mode="multiple"
       :dataSource="treeData"
       :maxTagCount="2"
       :defaltMulValue="[2, 4, 5]"

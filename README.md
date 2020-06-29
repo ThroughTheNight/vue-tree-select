@@ -1,7 +1,5 @@
 # @bieyanghong/vue-select-tree
 
-![avatar](./src/assets/example.jpg)
-
 ## Installation
 ```
 npm install @bieyanghong/vue-select-tree --save
@@ -77,11 +75,11 @@ export default {
 |  ----------------------  | ---------------------  | -------- |
 |  palceholder             | 选择框默认文字	          | 请选择    |
 |  dropdownWidth           | 下拉弹框宽度             | 220px    |
-|  mode                    | 单选还是多选，true为多选  | 220px    |
+|  mode                    | default 表示单选， multiple 表示多选  | default    |
 |  dataSource              | 数据源                  | []       |
 |  allowSelectOrganization | 单选时是否可以选择部门     | false    |
-|  defaltValue             | 单选时默认值             | number   |
+|  defaultValue             | 单选时默认值             | number   |
 |  value                   | 单选时指定选中            | number   |
-|  defaltMulValue          | 多选时的默认值            | number[] |
+|  defaultMulValue          | 多选时的默认值            | number[] |
 |  mulValue                | 指定当前选中的条目         | number[] |
 |  maxTagCount             | 最多显示多少个tag         | number   |
